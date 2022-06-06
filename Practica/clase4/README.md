@@ -8,6 +8,11 @@ colaFIFO.py
 ```
 El contenido de la cola se almacena en una atributo lista llamado “*elementos*”
 
+
+
+
+
+
 La clase contiene 7 métodos
 
 ***Constructor*** : inicializa la lista “elementos” para el contenido de la cola
