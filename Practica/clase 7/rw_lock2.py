@@ -44,7 +44,10 @@
 # _______________________________________________________________________
 # Imports
 
-from threading  import Lock
+import logging
+import random
+from threading  import Lock, Thread
+from time import time
 
 # _______________________________________________________________________
 # Class
@@ -110,7 +113,59 @@ class RWLock(object):
         self.w_lock.release()
 
 
-class main:
-    equipos = ["Boca", "River", "Racing", "Independiente", "San Lorenzo", "Huracán", "Gimnasia", 
+rwlock = RWLock()
+partido = ["",0,"",0] 
+equipos = ["Boca", "River", "Racing", "Independiente", "San Lorenzo", "Huracán", "Gimnasia", 
 "Estudiantes", "Velez", "Ferro", "Lanus", "Quilmes"]
-    
+def escritor(id):
+    global partido
+    global equipos
+    nombreHilo= f"Escritor numero:{id}"
+    while True:
+        golesEquipo1= random.randint(0,3)
+        golesEquipo2= random.randint(0,3)
+        primerEquipo = equipos[random.randint(0,len(equipos)-1)]
+        segundoEquipo = equipos[random.randint(0,len(equipos)-1)]
+        while primerEquipo == segundoEquipo:
+            segundoEquipo = equipos[random.randint(0,len(equipos)-1)]
+        rwlock.w_acquire()
+        try:
+            partido[0] = primerEquipo
+            partido[1] = golesEquipo1
+            partido[2] = segundoEquipo
+            partido[3] = golesEquipo2
+            logging.info(f"Partido actualizado por {nombreHilo}")
+        finally:
+            rwlock.w_release()
+            time.sleep(random.randint(1,2))
+def lector(id):
+    global partido
+    global equipos
+    nombreHilo= f'Lector-{id}:'
+    while True:
+        rwlock.r_acquire()
+        try:
+            logging.info(f"{nombreHilo} el resultado ue: {partido[0]}: {partido[1]} - {partido[2]}: {partido[4]}")
+        finally:
+            rwlock.r_release()
+            time.sleep(random.randint(1,2))
+
+
+class main():
+    hilos = []
+    for i in range(1):
+        logging.info(f"Creando hilo escritor {i}")
+        writer = Thread(target=escritor, args=(i))
+        writer.start()
+        hilos.append(writer)
+    for r in range(4):
+        logging.info(f"Creando hilo lector {r}")
+        reader = Thread(target=lector, args=(r))
+        reader.start()
+        hilos.append(reader)
+    for hilo in hilos:
+        hilo.join()
+
+if __name__ == '__main__':
+    main()
+
